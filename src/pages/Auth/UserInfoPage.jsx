@@ -17,7 +17,7 @@ export function UserInfoPage() {
     try {
       const token = sessionStorage.getItem("token"); // Get token from sessionStorage
       await axios.put(
-        "http://localhost:5000/api/users/profile",
+        "https://api.leadsavvyai.com/api/users/profile",
         { firstName, lastName, purpose },
         {
           headers: {

@@ -20,6 +20,7 @@ import BillingSettings from "./pages/settings/BillingSettings";
 import BusinessSettings from "./pages/settings/BusinessSettings";
 import LocalizationSettings from "./pages/settings/LocalizationSettings";
 import EmailSettings from "./pages/settings/EmailSettings";
+import EmailBuilder from "./pages/EmailBuilder/index.tsx";
 import axios from "axios"
 // New Section Components
 import {Contacts} from "./pages/Contacts";
@@ -157,6 +158,14 @@ const App = () => {
             }
           />
         </Route>
+        <Route
+  path="/email-builder"
+  element={
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      <EmailBuilder />
+    </div>
+  }
+/>
 
         {/* Settings Routes with Settings Sidebar */}
         

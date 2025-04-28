@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Grid, List, Plus, Trash2, Eye } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // Create an axios instance with base URL and token interceptor
 const instance = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://api.leadsavvyai.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,6 +22,8 @@ instance.interceptors.request.use((config) => {
 function Templates() {
   const [templates, setTemplates] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate
+
   const [template, setTemplate] = useState({
     name: '',
     content: '',
@@ -101,7 +104,7 @@ function Templates() {
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
         <h1 className="text-3xl font-semibold">Email Templates</h1>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => navigate('/email-builder/')}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center"
         >
           <Plus className="h-5 w-5 mr-2" />
