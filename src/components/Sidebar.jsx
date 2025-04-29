@@ -17,7 +17,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     const fetchUserProfile = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/api/users/profile", {
+        const response = await axios.get("https://api.leadsavvyai.com/api/users/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -96,7 +96,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               <NavLink to="/scraper" className={({ isActive }) => `flex items-center p-3 text-white rounded-lg mb-2 hover:bg-black/70 hover:opacity-80 transition-all ${isActive ? 'bg-black/70' : ''}`}>
                 <FontAwesomeIcon icon={faEnvelope} className="mr-3" /> Data Scrapper
               </NavLink>
-              <NavLink to="http://82.180.137.7:8080" className={({ isActive }) => `flex items-center p-3 text-white rounded-lg mb-2 hover:bg-black/70 hover:opacity-80 transition-all ${isActive ? 'bg-black/70' : ''}`}>
+              <NavLink to="https://landingpagebuilder.leadsavvyai.com" className={({ isActive }) => `flex items-center p-3 text-white rounded-lg mb-2 hover:bg-black/70 hover:opacity-80 transition-all ${isActive ? 'bg-black/70' : ''}`}>
                 <FontAwesomeIcon icon={faFileAlt} className="mr-3" /> Landing Page Builder
               </NavLink>
             </nav>
