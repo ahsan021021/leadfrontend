@@ -16,7 +16,7 @@ function EmailSettings() {
   useEffect(() => {
     const fetchEmailSettings = async () => {
       try {
-        const response = await axios.get('https://api.leadsavvyai.com/api/email-settings', {
+        const response = await axios.get('http://localhost:5000/api/email-settings', {
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('token')}`,
           },
@@ -52,19 +52,19 @@ function EmailSettings() {
   
     // Validate formData
     if (!formData.smtpServer || !formData.port || !formData.fromEmail || !formData.emailPassword) {
-      toast.error('Please fill in all required fields.');
+      alert('Please fill in all required fields.');
       return;
     }
   
     // Check for token
     const token = sessionStorage.getItem('token');
     if (!token) {
-      toast.error('Authorization token is missing.');
+      alert('Authorization token is missing.');
       return;
     }
   
     try {
-      const response = await axios.put('https://api.leadsavvyai.com/api/email-settings', formData, {
+      const response = await axios.put('http://localhost:5000/api/email-settings', formData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -72,28 +72,28 @@ function EmailSettings() {
       });
   
       if (response.status === 200) {
-        toast.success('Email settings updated successfully!');
+        alert('Email settings updated successfully!');
       }
     } catch (error) {
       if (error.response) {
         // Server responded with a status other than 2xx
         console.error('Server error:', error.response.data);
-        toast.error(error.response.data.message || 'Failed to save email settings');
+        alert(error.response.data.message || 'Failed to save email settings');
       } else if (error.request) {
         // Request was made but no response received
         console.error('Network error:', error.request);
-        toast.error('Network error. Please check your connection.');
+        alert('Network error. Please check your connection.');
       } else {
         // Something else happened
         console.error('Error:', error.message);
-        toast.error('An unexpected error occurred.');
+        alert('An unexpected error occurred.');
       }
     }
   };
   // Handle testing the email connection
   const handleTestConnection = async () => {
     try {
-      const response = await axios.post('https://api.leadsavvyai.com/api/email-settings/test', formData, {
+      const response = await axios.post('http://localhost:5000/api/email-settings/test', formData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -101,13 +101,13 @@ function EmailSettings() {
       });
 
       if (response.status === 200) {
-        toast.success('Test email sent successfully!');
+        alert('Test email sent successfully!');
       } else {
-        toast.error('Failed to send test email');
+        alert('Failed to send test email');
       }
     } catch (error) {
       console.error('Error testing email connection:', error);
-      toast.error('An error occurred while testing the email connection');
+      alert('An error occurred while testing the email connection');
     }
   };
 

@@ -30,7 +30,7 @@ useEffect(() => {
   const fetchPaymentMethods = async () => {
     try {
       const token = sessionStorage.getItem('token');
-      const response = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+      const response = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPaymentMethods(response.data.paymentMethods);
@@ -67,7 +67,7 @@ const handleAddPaymentMethod = async (e) => {
 
     const token = sessionStorage.getItem('token');
     const response = await axios.post(
-      'https://api.leadsavvyai.com/api/payment/add-payment-method',
+      'http://localhost:5000/api/payment/add-payment-method',
       { paymentMethodId: paymentMethod.id },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -76,7 +76,7 @@ const handleAddPaymentMethod = async (e) => {
 
     setMessage(response.data.message);
 
-    const updatedPaymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+    const updatedPaymentMethodsResponse = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setPaymentMethods(updatedPaymentMethodsResponse.data.paymentMethods);
@@ -94,12 +94,12 @@ const handleDeletePaymentMethod = async () => {
 
   try {
     const token = sessionStorage.getItem('token');
-    const response = await axios.delete(`https://api.leadsavvyai.com/api/payment/delete-payment-method/${paymentMethodToDelete}`, {
+    const response = await axios.delete(`http://localhost:5000/api/payment/delete-payment-method/${paymentMethodToDelete}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setMessage(response.data.message);
 
-    const updatedPaymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+    const updatedPaymentMethodsResponse = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setPaymentMethods(updatedPaymentMethodsResponse.data.paymentMethods);
@@ -117,7 +117,7 @@ const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
   try {
     const token = sessionStorage.getItem('token');
     const response = await axios.post(
-      'https://api.leadsavvyai.com/api/payment/set-default-payment-method',
+      'http://localhost:5000/api/payment/set-default-payment-method',
       { paymentMethodId },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -125,7 +125,7 @@ const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
     );
     setMessage(response.data.message);
 
-    const updatedPaymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+    const updatedPaymentMethodsResponse = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
       headers: { Authorization: `Bearer ${token}` },
     });
     setPaymentMethods(updatedPaymentMethodsResponse.data.paymentMethods);
@@ -143,13 +143,13 @@ const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
         const token = sessionStorage.getItem('token');
 
         // Fetch payment methods
-        const paymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+        const paymentMethodsResponse = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPaymentMethods(paymentMethodsResponse.data.paymentMethods);
 
         // Fetch current subscription plan
-        const subscriptionResponse = await axios.get('https://api.leadsavvyai.com/api/user/subscription-plan', {
+        const subscriptionResponse = await axios.get('http://localhost:5000/api/user/subscription-plan', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setCurrentPlan(subscriptionResponse.data);
@@ -181,7 +181,7 @@ const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
     // Refresh subscription details
     const fetchCurrentPlan = async () => {
       const token = sessionStorage.getItem('token');
-      const subscriptionResponse = await axios.get('https://api.leadsavvyai.com/api/user/subscription-plan', {
+      const subscriptionResponse = await axios.get('http://localhost:5000/api/user/subscription-plan', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCurrentPlan(subscriptionResponse.data);
@@ -282,7 +282,7 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       try {
-        const response = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+        const response = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('token')}`,
           },
@@ -307,7 +307,7 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
       if (selectedPaymentMethod) {
         // Use saved payment method
         const response = await axios.post(
-          'https://api.leadsavvyai.com/api/payment/create-subscription',
+          'http://localhost:5000/api/payment/create-subscription',
           { planId: selectedPlan, paymentMethodId: selectedPaymentMethod },
           {
             headers: {
@@ -339,7 +339,7 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
           // Save the payment method
           const token = sessionStorage.getItem('token');
           await axios.post(
-            'https://api.leadsavvyai.com/api/payment/add-payment-method',
+            'http://localhost:5000/api/payment/add-payment-method',
             { paymentMethodId: paymentMethod.id },
             {
               headers: {
@@ -350,7 +350,7 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
         }
 
         const response = await axios.post(
-          'https://api.leadsavvyai.com/api/payment/create-subscription',
+          'http://localhost:5000/api/payment/create-subscription',
           { planId: selectedPlan, paymentMethodId: paymentMethod.id },
           {
             headers: {

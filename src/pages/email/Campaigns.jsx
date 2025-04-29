@@ -13,8 +13,8 @@ function Campaigns() {
   const [campaign, setCampaign] = useState({
     name: '',
     subject: '',
-    content: '',
     template: '',
+    status: 'draft', // Add status field with default value
     recipients: [],
     scheduledDate: '',
   });
@@ -38,7 +38,7 @@ const [plans, setPlans] = useState([
   };
   // Create axios instance with token from localStorage
   const axiosInstance = axios.create({
-    baseURL: 'https://api.leadsavvyai.com/api',
+    baseURL: 'http://localhost:5000/api',
   });
 
   // Add a request interceptor to include the token in every request
@@ -110,7 +110,7 @@ const [plans, setPlans] = useState([
     setError('');
 
     // Validation
-    if (!campaign.name || !campaign.subject || !campaign.content || !campaign.template || campaign.recipients.length === 0) {
+    if (!campaign.name || !campaign.subject || !campaign.template || campaign.recipients.length === 0) {
       setError('Please fill in all required fields and select at least one recipient.');
       setLoading(false);
       return;
@@ -147,7 +147,7 @@ const [plans, setPlans] = useState([
   };
 
   const resetForm = () => {
-    setCampaign({ name: '', subject: '', content: '', template: '', recipients: [], scheduledDate: '' });
+    setCampaign({ name: '', subject: '', template: '', recipients: [], scheduledDate: '' });
     setShowForm(false);
   };
 
@@ -357,24 +357,31 @@ const [plans, setPlans] = useState([
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Content</label>
-                <textarea
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  value={campaign.content}
-                  onChange={(e) => setCampaign({ ...campaign, content: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Scheduled Date</label>
-                <input
-                  type="datetime-local"
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
-                  value={campaign.scheduledDate}
-                  onChange={(e) => setCampaign({ ...campaign, scheduledDate: e.target.value })}
-                  required
-                />
-              </div>
+  <label className="block text-sm font-medium mb-1">Status</label>
+  <select
+    className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+    value={campaign.status}
+    onChange={(e) => setCampaign({ ...campaign, status: e.target.value })}
+    required
+  >
+    <option value="draft">Draft</option>
+    <option value="scheduled">Scheduled</option>
+  </select>
+</div>
+
+{campaign.status === 'scheduled' && (
+  <div>
+    <label className="block text-sm font-medium mb-1">Scheduled Date</label>
+    <input
+      type="datetime-local"
+      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+      value={campaign.scheduledDate}
+      onChange={(e) => setCampaign({ ...campaign, scheduledDate: e.target.value })}
+      required
+    />
+  </div>
+)}
+              
               <div>
                 <label className="block text-sm font-medium mb-1">Recipients</label>
                 <Select

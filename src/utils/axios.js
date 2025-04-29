@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getToken, removeToken } from './auth';
 
 const instance = axios.create({
-  baseURL: 'https://api.leadsavvyai.com/api', // Ensure this is correct
+  baseURL: 'http://localhost:5000/api', // Ensure this is correct
   headers: {
     'Content-Type': 'application/json',
   },
