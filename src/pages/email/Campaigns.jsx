@@ -4,7 +4,7 @@ import axios from 'axios';
 import Select from 'react-select/creatable';
 import Dropzone from 'react-dropzone';
 import Papa from 'papaparse';
-
+import { CheckSquare, Upload } from 'lucide-react'; // Add other icons as needed
 function Campaigns() {
   const [showForm, setShowForm] = useState(false);
   const [showCSVModal, setShowCSVModal] = useState(false);
@@ -392,20 +392,24 @@ const [plans, setPlans] = useState([
                   placeholder="Type to search and select recipients..."
                   noOptionsMessage={() => 'No subscribers found'}
                 />
-                <button
-                  type="button"
-                  className="mt-2 text-blue-400 hover:text-blue-300"
-                  onClick={handleSelectAllRecipients}
-                >
-                  Select All Recipients
-                </button>
-                <button
-                  type="button"
-                  className="mt-2 text-blue-400 hover:text-blue-300"
-                  onClick={() => setShowCSVModal(true)}
-                >
-                  Import from CSV
-                </button>
+               <button
+    type="button"
+    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-semibold"
+    onClick={handleSelectAllRecipients}
+  >
+    <CheckSquare className="w-5 h-5" /> {/* Icon */}
+    Select All
+  </button>
+
+  {/* Import from CSV */}
+  <button
+    type="button"
+    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 font-semibold"
+    onClick={() => setShowCSVModal(true)}
+  >
+    <Upload className="w-5 h-5" /> {/* Icon */}
+    Import CSV
+  </button>
               </div>
               <div className="flex justify-end space-x-4">
                 <button
