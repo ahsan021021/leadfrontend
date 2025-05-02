@@ -19,7 +19,7 @@ function Localization() {
   useEffect(() => {
     const fetchLocalization = async () => {
       try {
-        const response = await axios.get('https://api.leadsavvyai.com/api/localization', {
+        const response = await axios.get('http://localhost:5000/api/localization', {
           headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` },
         });
         const settings = response.data;
@@ -50,7 +50,7 @@ function Localization() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put('https://api.leadsavvyai.com/api/localization', formData, {
+      const response = await axios.put('http://localhost:5000/api/localization', formData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionStorage.getItem('token')}`,

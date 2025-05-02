@@ -1,161 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { CreditCard, CheckCircle } from 'lucide-react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
+import { CreditCard, Shield, Zap, CheckCircle, Star, Trash2, AlertTriangle, X } from 'lucide-react';
 
-const stripePromise = loadStripe('pk_live_51Ocz3aLkcPTy2rjPtXbNgTurl0FpoaxdeHOnj39RLvI68zkLR4mk8B2YfDCFm4ryAvn5VEzjjedkdNhoHUk3mXCX003XxUmXKj'); // Replace with your Stripe Publishable Key
+const stripePromise = loadStripe('pk_live_51Ocz3aLkcPTy2rjPtXbNgTurl0FpoaxdeHOnj39RLvI68zkLR4mk8B2YfDCFm4ryAvn5VEzjjedkdNhoHUk3mXCX003XxUmXKj');
 
 function BillingSettings() {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [plans, setPlans] = useState([
-    { id: 'free', name: 'Free Plan', price: 0, features: ['Access to everything','Data scraper - 50/month','Email marketing - 50/month', 'Landing page builder - build 1 page but they cannot deploy' ] },
-    { id: 'basic', name: 'Basic Plan', price: 10, features: ['Data scraper - first 40 free and the rest depending upon api charges', 'Email marketing - 2000 email a month', 'Landing page builder - 1 landing page with deploy' ] },
-    { id: 'pro', name: 'Standard Plan', price: 29, features: ['Data scraper - first 40 free and the rest depending upon api charges', 'Email marketing - 5000 email a month', 'Landing page builder - 2 landing page with deploy'] },
-    { id: 'premium', name: 'Enterprise Plan', price: 99, features: ['Data scraper - first 40 free and the rest depending upon api charges', 'Email marketing - 10k email a month', 'Landing page builder - 3 landing page with deploy' ] },
+    { 
+      id: 'free', 
+      name: 'Free Plan', 
+      price: 0, 
+      icon: <Shield className="w-6 h-6 text-gray-400" />,
+      features: [
+        'Access to everything',
+        'Data scraper - 50/month',
+        'Email marketing - 50/month', 
+        'Landing page builder - build 1 page but they cannot deploy'
+      ]
+    },
+    { 
+      id: 'basic', 
+      name: 'Basic Plan', 
+      price: 10, 
+      icon: <Zap className="w-6 h-6 text-blue-400" />,
+      features: [
+        'Data scraper - first 40 free and the rest depending upon api charges', 
+        'Email marketing - 2000 email a month', 
+        'Landing page builder - 1 landing page with deploy'
+      ]
+    },
+    { 
+      id: 'pro', 
+      name: 'Standard Plan', 
+      price: 29, 
+      icon: <Zap className="w-6 h-6 text-blue-400" />,
+      features: [
+        'Data scraper - first 40 free and the rest depending upon api charges', 
+        'Email marketing - 5000 email a month', 
+        'Landing page builder - 2 landing page with deploy'
+      ]
+    },
+    { 
+      id: 'premium', 
+      name: 'Enterprise Plan', 
+      price: 99, 
+      icon: <Zap className="w-6 h-6 text-blue-400" />,
+      features: [
+        'Data scraper - first 40 free and the rest depending upon api charges', 
+        'Email marketing - 10k email a month', 
+        'Landing page builder - 3 landing page with deploy'
+      ]
+    }
   ]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
-const [showDeletePopup, setShowDeletePopup] = useState(false);
-const [paymentMethodToDelete, setPaymentMethodToDelete] = useState(null);
-
-// Fetch payment methods
-useEffect(() => {
-  const fetchPaymentMethods = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      const response = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setPaymentMethods(response.data.paymentMethods);
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
-      setMessage('Failed to fetch payment methods.');
-    }
-  };
-
-  fetchPaymentMethods();
-}, []);
-
-// Add payment method
-const handleAddPaymentMethod = async (e) => {
-  e.preventDefault();
-
-  if (!stripe || !elements) {
-    setMessage('Stripe.js has not loaded yet.');
-    return;
-  }
-
-  const cardElement = elements.getElement(CardElement);
-
-  try {
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: 'card',
-      card: cardElement,
-    });
-
-    if (error) {
-      setMessage(`Error: ${error.message}`);
-      return;
-    }
-
-    const token = sessionStorage.getItem('token');
-    const response = await axios.post(
-      'https://api.leadsavvyai.com/api/payment/add-payment-method',
-      { paymentMethodId: paymentMethod.id },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    setMessage(response.data.message);
-
-    const updatedPaymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setPaymentMethods(updatedPaymentMethodsResponse.data.paymentMethods);
-
-    cardElement.clear();
-  } catch (error) {
-    console.error('Error adding payment method:', error);
-    setMessage('Failed to add payment method.');
-  }
-};
-
-// Delete payment method
-const handleDeletePaymentMethod = async () => {
-  if (!paymentMethodToDelete) return;
-
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.delete(`https://api.leadsavvyai.com/api/payment/delete-payment-method/${paymentMethodToDelete}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setMessage(response.data.message);
-
-    const updatedPaymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setPaymentMethods(updatedPaymentMethodsResponse.data.paymentMethods);
-
-    setShowDeletePopup(false);
-    setPaymentMethodToDelete(null);
-  } catch (error) {
-    console.error('Error deleting payment method:', error);
-    setMessage('Failed to delete payment method.');
-  }
-};
-
-// Set default payment method
-const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.post(
-      'https://api.leadsavvyai.com/api/payment/set-default-payment-method',
-      { paymentMethodId },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    setMessage(response.data.message);
-
-    const updatedPaymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setPaymentMethods(updatedPaymentMethodsResponse.data.paymentMethods);
-  } catch (error) {
-    console.error('Error setting default payment method:', error);
-    setMessage('Failed to set default payment method.');
-  }
-};
-
-
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [paymentMethodToDelete, setPaymentMethodToDelete] = useState(null);
 
   useEffect(() => {
     const fetchBillingDetails = async () => {
       try {
         const token = sessionStorage.getItem('token');
-
-        // Fetch payment methods
-        const paymentMethodsResponse = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [paymentMethodsResponse, subscriptionResponse] = await Promise.all([
+          axios.get('http://localhost:5000/api/payment/get-payment-methods', {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get('http://localhost:5000/api/user/subscription-plan', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ]);
+        
         setPaymentMethods(paymentMethodsResponse.data.paymentMethods);
-
-        // Fetch current subscription plan
-        const subscriptionResponse = await axios.get('https://api.leadsavvyai.com/api/user/subscription-plan', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
         setCurrentPlan(subscriptionResponse.data);
       } catch (error) {
         console.error('Error fetching billing details:', error);
-        setMessage('Failed to fetch billing details.');
+        toast.error('Failed to fetch billing details');
       } finally {
         setLoading(false);
       }
@@ -169,24 +99,21 @@ const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
       toast.success('You are already on the Free Plan.');
       return;
     }
-    setSelectedPlan(planId);
+    setSelectedPlan(plans.find(p => p.id === planId));
     setShowPaymentModal(true);
   };
 
-  const handlePaymentSuccess = (successMessage) => {
+  const handlePaymentSuccess = async (successMessage) => {
     toast.success(successMessage);
     setShowPaymentModal(false);
     setSelectedPlan(null);
     setShowSuccessPopup(true);
-    // Refresh subscription details
-    const fetchCurrentPlan = async () => {
-      const token = sessionStorage.getItem('token');
-      const subscriptionResponse = await axios.get('https://api.leadsavvyai.com/api/user/subscription-plan', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCurrentPlan(subscriptionResponse.data);
-    };
-    fetchCurrentPlan();
+    
+    const token = sessionStorage.getItem('token');
+    const subscriptionResponse = await axios.get('http://localhost:5000/api/user/subscription-plan', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setCurrentPlan(subscriptionResponse.data);
   };
 
   const handlePaymentError = (errorMessage) => {
@@ -195,78 +122,268 @@ const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
     setSelectedPlan(null);
   };
 
+  const handleDeletePaymentMethod = async () => {
+    if (!paymentMethodToDelete) return;
+
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/payment/delete-payment-method/${paymentMethodToDelete}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      const updatedPaymentMethods = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      setPaymentMethods(updatedPaymentMethods.data.paymentMethods);
+      alert('Payment method deleted successfully');
+      setShowDeletePopup(false);
+      setPaymentMethodToDelete(null);
+    } catch (error) {
+      console.error('Error deleting payment method:', error);
+    alert('Failed to delete payment method');
+    }
+  };
+
+  const handleSetDefaultPaymentMethod = async (paymentMethodId) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.post(
+        'http://localhost:5000/api/payment/set-default-payment-method',
+        { paymentMethodId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      const updatedPaymentMethods = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      setPaymentMethods(updatedPaymentMethods.data.paymentMethods);
+      alert('Default payment method updated');
+    } catch (error) {
+      console.error('Error setting default payment method:', error);
+      alert('Failed to update default payment method');
+    }
+  };
+
   if (loading) {
-    return <p>Loading billing details...</p>;
+    return (
+      <div className="min-h-screen bg-gray-900 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <h2 className="text-3xl font-bold mb-6">Billing Dashboard</h2>
+    <div className="min-h-screen bg-gray-900 text-gray-100 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <header className="text-center mb-16">
+          <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+          <p className="text-gray-400">Select the perfect plan for your needs</p>
+        </header>
 
-      {/* Subscription Plan Selection Section */}
-      <div className="bg-gray-800 p-6 rounded-lg shadow-md">
-        <h3 className="text-xl font-semibold mb-4">Select a Subscription Plan</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan) => {
-            const isCurrentPlan = currentPlan && currentPlan.id === plan.id;
-            return (
-              <div
-                key={plan.id}
-                className={`p-4 border border-gray-700 rounded-lg ${
-                  isCurrentPlan ? 'bg-gray-700' : 'bg-gray-800'
+        {/* Plan Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {plans.map((plan) => (
+            <motion.div
+              key={plan.id}
+              className={`bg-gray-800 rounded-xl p-6 border border-gray-700 ${
+                currentPlan?.id === plan.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+              whileHover={{ y: -5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">{plan.name}</h3>
+                  <p className="text-2xl font-bold mt-2">${plan.price}<span className="text-sm text-gray-400">/mo</span></p>
+                </div>
+                {plan.icon}
+              </div>
+
+              <ul className="space-y-3 mb-6">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-start text-sm text-gray-300">
+                    <CheckCircle className="w-5 h-5 text-blue-500 shrink-0 mr-2" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() => handleSelectPlan(plan.id)}
+                disabled={currentPlan?.id === plan.id}
+                className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                  currentPlan?.id === plan.id
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-600'
                 }`}
               >
-                <h4 className="text-lg font-semibold text-white">{plan.name}</h4>
-                <p className="text-gray-400">${plan.price}/month</p>
-                <ul className="mt-2 text-gray-400 text-sm space-y-1">
-                  {plan.features.map((feature, index) => (
-                    <li key={index}>- {feature}</li>
-                  ))}
-                </ul>
-                <button
-                  className={`mt-4 px-4 py-2 rounded-lg ${
-                    isCurrentPlan
-                      ? 'bg-green-600 text-white cursor-not-allowed'
-                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  }`}
-                  onClick={() => handleSelectPlan(plan.id)}
-                  disabled={isCurrentPlan}
-                >
-                  {isCurrentPlan ? 'Current Plan' : 'Select Plan'}
-                </button>
-              </div>
-            );
-          })}
+                {currentPlan?.id === plan.id ? 'Current Plan' : 'Select Plan'}
+              </button>
+            </motion.div>
+          ))}
         </div>
-      </div>
 
-      {/* Payment Modal */}
-      {showPaymentModal && (
-        <PaymentModal
-          selectedPlan={selectedPlan}
-          onClose={() => setShowPaymentModal(false)}
-          onSuccess={handlePaymentSuccess}
-          onError={handlePaymentError}
-        />
-      )}
+        {/* Payment Methods Section */}
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gray-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-500" />
+                Payment Methods
+              </h2>
+            </div>
 
-      {/* Success Popup */}
-      {showSuccessPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Confetti />
-          <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md text-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-4">Congratulations!</h3>
-            <p className="text-gray-400 mb-6">You have successfully subscribed to this plan.</p>
-            <button
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-              onClick={() => setShowSuccessPopup(false)}
-            >
-              Go to Dashboard
-            </button>
+            {paymentMethods.length === 0 ? (
+              <div className="text-center py-8">
+                <CreditCard className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400">No payment methods added yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {paymentMethods.map((method) => (
+                  <motion.div
+                    key={method.id}
+                    className={`flex items-center justify-between p-4 rounded-lg ${
+                      method.isDefault ? 'bg-blue-900/20 border border-blue-500/50' : 'bg-gray-700/50'
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-gray-700 rounded">
+                        <CreditCard className="w-6 h-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{method.brand} •••• {method.last4}</span>
+                          {method.isDefault && (
+                            <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-400">Expires {method.expMonth}/{method.expYear}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {!method.isDefault && (
+                        <button
+                          onClick={() => handleSetDefaultPaymentMethod(method.id)}
+                          className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
+                          title="Set as default"
+                        >
+                          <Star className="w-5 h-5 text-gray-400 hover:text-blue-500" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setPaymentMethodToDelete(method.id);
+                          setShowDeletePopup(true);
+                        }}
+                        className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-500" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Modals */}
+        <AnimatePresence>
+          {showPaymentModal && (
+            <PaymentModal
+              selectedPlan={selectedPlan}
+              onClose={() => setShowPaymentModal(false)}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
+          )}
+
+          {showSuccessPopup && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50"
+            >
+              <Confetti />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-gray-800 rounded-xl p-8 max-w-md mx-4 text-center"
+              >
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Success!</h3>
+                <p className="text-gray-400 mb-6">Your subscription has been activated successfully.</p>
+                <button
+                  onClick={() => setShowSuccessPopup(false)}
+                  className="w-full py-2 bg-blue-500 rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                >
+                  Continue
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {showDeletePopup && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-gray-800 rounded-xl max-w-md mx-4"
+              >
+                <div className="p-6 border-b border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                    <h3 className="text-xl font-bold">Confirm Deletion</h3>
+                  </div>
+                </div>
+                
+                <div className="p-6">
+                  <p className="text-gray-300 mb-6">
+                    Are you sure you want to delete this payment method? This action cannot be undone.
+                  </p>
+                  
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => {
+                        setShowDeletePopup(false);
+                        setPaymentMethodToDelete(null);
+                      }}
+                      className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeletePaymentMethod}
+                      className="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
@@ -282,15 +399,12 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
   useEffect(() => {
     const fetchPaymentMethods = async () => {
       try {
-        const response = await axios.get('https://api.leadsavvyai.com/api/payment/get-payment-methods', {
+        const response = await axios.get('http://localhost:5000/api/payment/get-payment-methods', {
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('token')}`,
           },
         });
-
-        if (response.status === 200) {
-          setSavedPaymentMethods(response.data.paymentMethods || []);
-        }
+        setSavedPaymentMethods(response.data.paymentMethods || []);
       } catch (error) {
         console.error('Error fetching payment methods:', error);
       }
@@ -305,10 +419,9 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
 
     try {
       if (selectedPaymentMethod) {
-        // Use saved payment method
         const response = await axios.post(
-          'https://api.leadsavvyai.com/api/payment/create-subscription',
-          { planId: selectedPlan, paymentMethodId: selectedPaymentMethod },
+          'http://localhost:5000/api/payment/create-subscription',
+          { planId: selectedPlan.id, paymentMethodId: selectedPaymentMethod },
           {
             headers: {
               Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -322,7 +435,6 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
           onError(response.data.message || 'Subscription failed. Please try again.');
         }
       } else {
-        // Use new card details
         const cardElement = elements.getElement(CardElement);
         const { paymentMethod, error } = await stripe.createPaymentMethod({
           type: 'card',
@@ -336,10 +448,9 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
         }
 
         if (savePaymentMethod) {
-          // Save the payment method
           const token = sessionStorage.getItem('token');
           await axios.post(
-            'https://api.leadsavvyai.com/api/payment/add-payment-method',
+            'http://localhost:5000/api/payment/add-payment-method',
             { paymentMethodId: paymentMethod.id },
             {
               headers: {
@@ -350,8 +461,8 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
         }
 
         const response = await axios.post(
-          'https://api.leadsavvyai.com/api/payment/create-subscription',
-          { planId: selectedPlan, paymentMethodId: paymentMethod.id },
+          'http://localhost:5000/api/payment/create-subscription',
+          { planId: selectedPlan.id, paymentMethodId: paymentMethod.id },
           {
             headers: {
               Authorization: `Bearer ${sessionStorage.getItem('token')}`,
@@ -374,74 +485,144 @@ function PaymentModal({ selectedPlan, onClose, onSuccess, onError }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h3 className="text-xl font-semibold text-white mb-4">Complete Your Payment</h3>
-        <form onSubmit={handlePayment}>
-          <div className="mb-4">
-            <h4 className="text-lg font-semibold text-white mb-2">Saved Payment Methods</h4>
-            {savedPaymentMethods.length > 0 ? (
-              savedPaymentMethods.map((method) => (
-                <div key={method.id} className="flex items-center gap-4 mb-2">
-                  <input
-                    type="radio"
-                    id={method.id}
-                    name="paymentMethod"
-                    value={method.id}
-                    onChange={() => setSelectedPaymentMethod(method.id)}
-                  />
-                  <label htmlFor={method.id} className="text-white">
-                    {method.brand} •••• {method.last4} (Expires {method.expMonth}/{method.expYear})
-                  </label>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400">No saved payment methods found.</p>
-            )}
-          </div>
-          <div className="mb-4">
-            <h4 className="text-lg font-semibold text-white mb-2">Add New Card</h4>
-            <div className="p-4 border border-gray-700 rounded-lg">
-              <CardElement />
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-gray-800 rounded-xl max-w-md w-full mx-4"
+      >
+        <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+          <h3 className="text-xl font-bold">Complete Payment</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-semibold">Plan Details</h4>
             </div>
-            <div className="mt-2">
-              <label className="flex items-center text-white">
+            <div className="bg-gray-700/50 rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">{selectedPlan.name}</p>
+                  <p className="text-sm text-gray-400">Monthly subscription</p>
+                </div>
+                <p className="text-2xl font-bold">${selectedPlan.price}/mo</p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handlePayment} className="space-y-6">
+            {savedPaymentMethods.length > 0 && (
+              <div>
+                <h4 className="font-semibold mb-3">Saved Cards</h4>
+                <div className="space-y-3">
+                  {savedPaymentMethods.map((method) => (
+                    <div
+                      key={method.id}
+                      onClick={() => setSelectedPaymentMethod(method.id)}
+                      className={`p-4 rounded-lg cursor-pointer transition-all ${
+                        selectedPaymentMethod === method.id
+                          ? 'bg-blue-500/20 border border-blue-500/50'
+                          : 'bg-gray-700/50 hover:bg-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          checked={selectedPaymentMethod === method.id}
+                          onChange={() => setSelectedPaymentMethod(method.id)}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="font-medium">
+                            {method.brand} •••• {method.last4}
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            Expires {method.expMonth}/{method.expYear}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <h4 className="font-semibold mb-3">
+                {savedPaymentMethods.length > 0 ? 'Or Pay with New Card' : 'Card Details'}
+              </h4>
+              <div className="p-4 rounded-lg bg-gray-700/50">
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: '#fff',
+                        '::placeholder': {
+                          color: '#9ca3af',
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+
+              <label className="flex items-center gap-2 mt-3">
                 <input
                   type="checkbox"
-                  className="mr-2"
                   checked={savePaymentMethod}
                   onChange={(e) => setSavePaymentMethod(e.target.checked)}
+                  className="w-4 h-4"
                 />
-                Save this payment method for future use
+                <span className="text-sm text-gray-300">
+                  Save this card for future payments
+                </span>
               </label>
             </div>
-          </div>
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-              disabled={loading}
-            >
-              {loading ? 'Processing...' : 'Pay'}
-            </button>
-          </div>
-        </form>
-      </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 bg-blue-500 rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Pay $${selectedPlan.price}`
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
     </div>
   );
 }
 
-const App = () => (
-  <Elements stripe={stripePromise}>
-    <BillingSettings />
-  </Elements>
-);
+function App() {
+  return (
+    <Elements stripe={stripePromise}>
+      <BillingSettings />
+    </Elements>
+  );
+}
 
 export default App;

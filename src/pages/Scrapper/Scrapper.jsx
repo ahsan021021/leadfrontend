@@ -9,7 +9,8 @@ import CSVHistory from './components/CSVHistory'; // Adjust the path if needed
 import ExportManager from './components/ExportManager'; // Adjust the path if needed
 import { FaBars } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
-
+import { motion } from 'framer-motion';
+import { CheckCircle } from 'lucide-react';
 function Scraper() {
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +33,7 @@ function Scraper() {
     const fetchCSVHistory = async () => {
       try {
         const token = sessionStorage.getItem('token'); // Get token from sessionStorage
-        const response = await axios.get('https://api.leadsavvyai.com/api/history', {
+        const response = await axios.get('http://localhost:5000/api/history', {
           headers: {
             Authorization: `Bearer ${token}`, // Add token to headers
           },
@@ -56,7 +57,7 @@ function Scraper() {
     try {
       const token = sessionStorage.getItem('token'); // Get token from sessionStorage
       const response = await axios.post(
-        'https://api.leadsavvyai.com/api/scrape',
+        'http://localhost:5000/api/scrape',
         formData,
         {
           headers: {
@@ -86,7 +87,7 @@ function Scraper() {
     try {
       const token = sessionStorage.getItem('token'); // Get token from sessionStorage
       const response = await axios.post(
-        'https://api.leadsavvyai.com/api/export',
+        'http://localhost:5000/api/export',
         { results: customResults },
         {
           headers: {
@@ -140,7 +141,7 @@ function Scraper() {
   const handleDeleteFromHistory = async (id) => {
     try {
       const token = sessionStorage.getItem('token'); // Get token from sessionStorage
-      await axios.delete(`https://api.leadsavvyai.com/api/scrapehistory/${id}`, {
+      await axios.delete(`http://localhost:5000/api/scrapehistory/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`, // Add token to headers
         },
@@ -253,49 +254,74 @@ function Scraper() {
           />
         )}
          {/* Upgrade Popup */}
-        {showUpgradePopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Upgrade Your Plan</h3>
-              <p className="text-gray-600 mb-6">
-                You have reached the limit for the Free Plan. Select a plan to continue scraping.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {plans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="p-4 border border-gray-300 rounded-lg hover:shadow-md transition-shadow"
-                  >
-                    <h4 className="text-lg font-semibold text-gray-800">{plan.name}</h4>
-                    <p className="text-gray-600">${plan.price}/month</p>
-                    <ul className="mt-2 text-gray-600 text-sm space-y-1">
-                      {plan.features.map((feature, index) => (
-                        <li key={index}>- {feature}</li>
-                      ))}
-                    </ul>
-                    <button
-                      className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                      onClick={() => handleSelectPlan(plan.id)}
-                    >
-                      Select Plan
-                    </button>
-                  </div>
-                ))}
+         {showUpgradePopup && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
+      <header className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+        <p className="text-gray-400">Select the perfect plan for your needs</p>
+      </header>
+
+      {/* Plan Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {plans.map((plan) => (
+          <motion.div
+            key={plan.id}
+            className={`bg-gray-800 rounded-xl p-6 border border-gray-700 ${
+              selectedPlan?.id === plan.id ? 'ring-2 ring-blue-500' : ''
+            }`}
+            whileHover={{ y: -5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">{plan.name}</h3>
+                <p className="text-2xl font-bold mt-2">
+                  ${plan.price}
+                  <span className="text-sm text-gray-400">/mo</span>
+                </p>
               </div>
-              <div className="mt-6 text-right">
-                <button
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-                  onClick={() => setShowUpgradePopup(false)}
-                >
-                  Cancel
-                </button>
-              </div>
+              {plan.icon}
             </div>
-          </div>
-        )}
+
+            <ul className="space-y-3 mb-6">
+              {plan.features.map((feature, index) => (
+                <li key={index} className="flex items-start text-sm text-gray-300">
+                  <CheckCircle className="w-5 h-5 text-blue-500 shrink-0 mr-2" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={() => handleSelectPlan(plan.id)}
+              disabled={selectedPlan?.id === plan.id}
+              className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                selectedPlan?.id === plan.id
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+            >
+              {selectedPlan?.id === plan.id ? 'Current Plan' : 'Select Plan'}
+            </button>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-8 text-right">
+        <button
+          className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
+          onClick={() => setShowUpgradePopup(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         <footer className="footer">
-          <p>© 2025 Google Maps Scraper | All Rights Reserved</p>
+          <p>© 2025 All Rights Reserved</p>
         </footer>
       </main>
     </div>

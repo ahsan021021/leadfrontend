@@ -4,6 +4,7 @@ import axios from 'axios';
 import Select from 'react-select/creatable';
 import Dropzone from 'react-dropzone';
 import Papa from 'papaparse';
+import { Edit3, Send, Trash2 } from 'lucide-react';
 import { CheckSquare, Upload } from 'lucide-react'; // Add other icons as needed
 function Campaigns() {
   const [showForm, setShowForm] = useState(false);
@@ -116,11 +117,13 @@ const [plans, setPlans] = useState([
       return;
     }
 
-    if (new Date(campaign.scheduledDate) < new Date()) {
-      setError('Scheduled date cannot be in the past.');
-      setLoading(false);
-      return;
-    }
+     // Validate scheduledDate only if the status is "scheduled"
+  if (campaign.status === 'scheduled' && new Date(campaign.scheduledDate) < new Date()) {
+    setError('Scheduled date cannot be in the past.');
+    setLoading(false);
+    return;
+  }
+
 
     try {
       const campaignData = {
@@ -281,26 +284,34 @@ const [plans, setPlans] = useState([
                   <td className="py-4 px-4">{campaign.name}</td>
                   <td className="py-4 px-4">{campaign.status}</td>
                   <td className="py-4 px-4">{campaign.recipients.length}</td>
-                  <td className="py-4 px-4 flex space-x-2">
-                    <button
-                      className="text-blue-400 hover:text-blue-300"
-                      onClick={() => handleEditCampaign(campaign)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="text-green-400 hover:text-green-300"
-                      onClick={() => handleSendCampaign(campaign._id)}
-                    >
-                      Send Now
-                    </button>
-                    <button
-                      className="text-red-400 hover:text-red-300"
-                      onClick={() => handleDeleteCampaign(campaign._id)}
-                    >
-                      Delete
-                    </button>
-                  </td>
+                  <td className="py-4 px-4 flex space-x-4">
+  {/* Edit Button */}
+  <button
+    className="flex items-center gap-2 text-blue-400 hover:text-blue-300"
+    onClick={() => handleEditCampaign(campaign)}
+  >
+    <Edit3 className="w-5 h-5" /> {/* Icon */}
+    Edit
+  </button>
+
+  {/* Send Now Button */}
+  <button
+    className="flex items-center gap-2 text-green-400 hover:text-green-300"
+    onClick={() => handleSendCampaign(campaign._id)}
+  >
+    <Send className="w-5 h-5" /> {/* Icon */}
+    Send Now
+  </button>
+
+  {/* Delete Button */}
+  <button
+    className="flex items-center gap-2 text-red-400 hover:text-red-300"
+    onClick={() => handleDeleteCampaign(campaign._id)}
+  >
+    <Trash2 className="w-5 h-5" /> {/* Icon */}
+    Delete
+  </button>
+</td>
                 </tr>
               ))
             ) : (
@@ -411,6 +422,12 @@ const [plans, setPlans] = useState([
     Import CSV
   </button>
               </div>
+              {/* Error Message */}
+        {error && (
+          <div className="text-red-500 text-sm mt-2">
+            {error}
+          </div>
+        )}
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
@@ -458,39 +475,63 @@ const [plans, setPlans] = useState([
           </div>
         </div>
       )}
-      {/* Upgrade Popup */}
-{showUpgradePopup && (
+=         {showUpgradePopup && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
-      <h3 className="text-2xl font-bold text-gray-800 mb-4">Upgrade Your Plan</h3>
-      <p className="text-gray-600 mb-6">
-        You have reached the limit for the Free Plan. Select a plan to continue sending campaigns.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
+      <header className="text-center mb-8">
+        <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
+        <p className="text-gray-400">Select the perfect plan for your needs</p>
+      </header>
+
+      {/* Plan Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
-          <div
+          <motion.div
             key={plan.id}
-            className="p-4 border border-gray-300 rounded-lg hover:shadow-md transition-shadow"
+            className={`bg-gray-800 rounded-xl p-6 border border-gray-700 ${
+              selectedPlan?.id === plan.id ? 'ring-2 ring-blue-500' : ''
+            }`}
+            whileHover={{ y: -5 }}
+            transition={{ duration: 0.2 }}
           >
-            <h4 className="text-lg font-semibold text-gray-800">{plan.name}</h4>
-            <p className="text-gray-600">${plan.price}/month</p>
-            <ul className="mt-2 text-gray-600 text-sm space-y-1">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-lg font-semibold">{plan.name}</h3>
+                <p className="text-2xl font-bold mt-2">
+                  ${plan.price}
+                  <span className="text-sm text-gray-400">/mo</span>
+                </p>
+              </div>
+              {plan.icon}
+            </div>
+
+            <ul className="space-y-3 mb-6">
               {plan.features.map((feature, index) => (
-                <li key={index}>- {feature}</li>
+                <li key={index} className="flex items-start text-sm text-gray-300">
+                  <CheckCircle className="w-5 h-5 text-blue-500 shrink-0 mr-2" />
+                  <span>{feature}</span>
+                </li>
               ))}
             </ul>
+
             <button
-              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
               onClick={() => handleSelectPlan(plan.id)}
+              disabled={selectedPlan?.id === plan.id}
+              className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                selectedPlan?.id === plan.id
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
             >
-              Select Plan
+              {selectedPlan?.id === plan.id ? 'Current Plan' : 'Select Plan'}
             </button>
-          </div>
+          </motion.div>
         ))}
       </div>
-      <div className="mt-6 text-right">
+
+      <div className="mt-8 text-right">
         <button
-          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
           onClick={() => setShowUpgradePopup(false)}
         >
           Cancel

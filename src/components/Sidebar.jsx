@@ -17,7 +17,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
     const fetchUserProfile = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        const response = await axios.get("https://api.leadsavvyai.com/api/users/profile", {
+        const response = await axios.get("http://localhost:5000/api/users/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -52,11 +52,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         <div className="flex flex-col flex-grow overflow-y-auto scrollbar-hide">
           <div>
             <div className="flex justify-between items-center">
-              <img 
-                src={logo} // Use the imported logo
-                alt="Logo" 
-                className="h-15" // Adjust height as needed
-              />
+            <img 
+  src={logo} // Use the imported logo
+  alt="Logo" 
+  className="h-28 mx-auto" // Set height to 7rem (h-28) and center it using mx-auto
+/>
               <button onClick={toggleSidebar} className="text-white text-2xl lg:hidden">
                 <FontAwesomeIcon icon={faTimes} />
               </button>

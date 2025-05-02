@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar"; // Main Sidebar
 import Dashboard from "./components/Dashboard";
-import BulkActions from "./components/BulkActions";
+import BulkActions from "./components/BulkActions"; 
+import { Navigate } from 'react-router-dom';
 import ContactsPage from "./components/ContactsPage";
 import Conversation from "./components/Conversation";
 import CalendarPage from "./components/CalendarPage";
@@ -170,36 +171,44 @@ const App = () => {
         {/* Settings Routes with Settings Sidebar */}
         
         <Route
-          path="/settings"
-          element={
-            <PrivateRoute>
-            <div className="flex min-h-screen bg-gray-900">
-              {/* Settings Sidebar */}
-              <SettingsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-              <main className="flex-1 p-4 lg:p-8">
-                {/* Back to Dashboard Button */}
-                <div className="absolute top-4 right-4 z-[1000]">
-                  <button
-                    onClick={() => window.location.href = '/dashboard'}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200"
-                  >
-                    Back to Dashboard
-                  </button>
-                </div>
-                <div className="max-w-4xl mx-auto">
-                  <Outlet />
-                </div>
-              </main>
-            </div>
-            </PrivateRoute>
-          }
-        >
-          <Route path="profile" element={<ProfileSettings />} />
-          <Route path="billing" element={<BillingSettings />} />
-          <Route path="business" element={<BusinessSettings />} />
-          <Route path="localization" element={<LocalizationSettings />} />
-          <Route path="email" element={<EmailSettings />} />
-        </Route>
+  path="/settings"
+  element={
+    <PrivateRoute>
+      <div className="flex min-h-screen bg-gray-900">
+        {/* Fixed Settings Sidebar */}
+        <div className="fixed inset-y-0 left-0 w-64 bg-gray-800 shadow-lg z-50">
+          <SettingsSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+
+        {/* Main Content */}
+        <main className="flex-1 p-4 lg:p-8 ml-64">
+          {/* Fixed Back to Dashboard Button */}
+          <div className="fixed top-4 right-4 z-[1000]">
+            <button
+              onClick={() => (window.location.href = '/dashboard')}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition duration-200"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+          <div className="mx-auto">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </PrivateRoute>
+  }
+>
+  {/* Redirect to Profile Settings */}
+  <Route index element={<Navigate to="profile" replace />} />
+
+  {/* Settings Sub-Routes */}
+  <Route path="profile" element={<div className="max-w-4xl"><ProfileSettings /></div>} />
+  <Route path="billing" element={<BillingSettings />} />
+  <Route path="business" element={<div className="max-w-4xl"><BusinessSettings /></div>} />
+  <Route path="localization" element={<div className="max-w-4xl"><LocalizationSettings /></div>} />
+  <Route path="email" element={<div className="max-w-4xl"><EmailSettings /></div>} />
+</Route>
         
 
         {/* Authentication Routes (No Sidebar) */}
